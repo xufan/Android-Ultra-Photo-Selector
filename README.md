@@ -35,7 +35,7 @@ on your mobil phone. Selection image result is also preserved. See **AndroidMani
 > - **Select Images from Album** 
 
 
-![Select Images](https://github.com/xufan/Android-Ultra-Photo-Selector/blob/master/media/image1.png)
+![Select Images](https://github.com/xufan/Android-Ultra-Photo-Selector/blob/master/media/image1.png) 
 
 > - **Browsing all device folders that have images** 
 
