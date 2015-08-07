@@ -1,16 +1,22 @@
 package com.photoselector.ui;
+
 /**
  * 
  * @author Aizaz AZ
  *
  */
+import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -25,16 +31,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.nostra13.universalimageloader.cache.disc.impl.UnlimitedDiscCache;
-import com.nostra13.universalimageloader.cache.disc.naming.HashCodeFileNameGenerator;
-import com.nostra13.universalimageloader.cache.memory.impl.LruMemoryCache;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
-import com.nostra13.universalimageloader.core.decode.BaseImageDecoder;
-import com.nostra13.universalimageloader.core.download.BaseImageDownloader;
-import com.nostra13.universalimageloader.utils.StorageUtils;
 import com.photoselector.R;
 import com.photoselector.domain.PhotoSelectorDomain;
 import com.photoselector.model.AlbumModel;
@@ -46,311 +42,356 @@ import com.photoselector.util.CommonUtils;
 
 /**
  * @author Aizaz AZ
- *
+ * 
  */
 public class PhotoSelectorActivity extends Activity implements
-		onItemClickListener, onPhotoItemCheckedListener, OnItemClickListener,
-		OnClickListener {
+        onItemClickListener, onPhotoItemCheckedListener, OnItemClickListener,
+        OnClickListener {
 
-	public static final int SINGLE_IMAGE = 1;
-	public static final String KEY_MAX = "key_max";
-	private int MAX_IMAGE;
+    public static final int SINGLE_IMAGE = 1;
+    public static final String KEY_MAX = "key_max";
+    private int MAX_IMAGE;
 
-	public static final int REQUEST_PHOTO = 0;
-	private static final int REQUEST_CAMERA = 1;
+    public static final int REQUEST_PHOTO = 0;
+    private static final int REQUEST_CAMERA = 1;
 
-	public static String RECCENT_PHOTO = null;
+    public static String RECCENT_PHOTO = null;
 
-	private GridView gvPhotos;
-	private ListView lvAblum;
-	private Button btnOk;
-	private TextView tvAlbum, tvPreview, tvTitle;
-	private PhotoSelectorDomain photoSelectorDomain;
-	private PhotoSelectorAdapter photoAdapter;
-	private AlbumAdapter albumAdapter;
-	private RelativeLayout layoutAlbum;
-	private ArrayList<PhotoModel> selected;
-	private TextView tvNumber;
+    private GridView gvPhotos;
+    private ListView lvAblum;
+    private Button btnOk;
+    private TextView tvAlbum, tvPreview, tvTitle;
+    private PhotoSelectorDomain photoSelectorDomain;
+    private PhotoSelectorAdapter photoAdapter;
+    private AlbumAdapter albumAdapter;
+    private RelativeLayout layoutAlbum;
+    private ArrayList<PhotoModel> selected;
+    private TextView tvNumber;
+    private boolean checked;
+    File mediaFile;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		RECCENT_PHOTO = getResources().getString(R.string.recent_photos);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);// 去掉标题栏
-		setContentView(R.layout.activity_photoselector);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (Environment.MEDIA_MOUNTED.equals(Environment
+                .getExternalStorageState())) {
+            RECCENT_PHOTO = getResources().getString(
+                    R.string.photo_selector_recent_photos);
+            requestWindowFeature(Window.FEATURE_NO_TITLE);// 去掉标题栏
+            setContentView(R.layout.activity_photoselector);
 
-		if (getIntent().getExtras() != null) {
-			MAX_IMAGE = getIntent().getIntExtra(KEY_MAX, 10);
-		}
+            if (getIntent().getExtras() != null) {
+                MAX_IMAGE = getIntent().getIntExtra(KEY_MAX, 10);
+            }
+            photoSelectorDomain = new PhotoSelectorDomain(
+                    getApplicationContext());
 
-		initImageLoader();
+            tvTitle = (TextView) findViewById(R.id.tv_title_lh);
+            gvPhotos = (GridView) findViewById(R.id.gv_photos_ar);
+            lvAblum = (ListView) findViewById(R.id.lv_ablum_ar);
+            btnOk = (Button) findViewById(R.id.btn_right_lh);
+            tvAlbum = (TextView) findViewById(R.id.tv_album_ar);
+            tvPreview = (TextView) findViewById(R.id.tv_preview_ar);
+            layoutAlbum = (RelativeLayout) findViewById(R.id.layout_album_ar);
+            tvNumber = (TextView) findViewById(R.id.tv_number);
+            selected = (ArrayList<PhotoModel>) getIntent()
+                    .getSerializableExtra("photos");
+            if (selected.size() != 0) {
+                tvPreview.setEnabled(true);
+                tvNumber.setText("(" + selected.size() + "/" + MAX_IMAGE + ")");
+                tvPreview.setText(getString(R.string.photo_selector_preview)
+                        + "(" + selected.size() + "/" + MAX_IMAGE + ")");
+            }
+            btnOk.setOnClickListener(this);
+            tvAlbum.setOnClickListener(this);
+            tvPreview.setOnClickListener(this);
 
-		photoSelectorDomain = new PhotoSelectorDomain(getApplicationContext());
+            photoAdapter = new PhotoSelectorAdapter(getApplicationContext(),
+                    new ArrayList<PhotoModel>(),
+                    CommonUtils.getWidthPixels(this), this, this,
+                    new OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            catchPicture();
+                        }
+                    });
+            gvPhotos.setAdapter(photoAdapter);
 
-		selected = new ArrayList<PhotoModel>();
+            albumAdapter = new AlbumAdapter(getApplicationContext(),
+                    new ArrayList<AlbumModel>());
+            lvAblum.setAdapter(albumAdapter);
+            lvAblum.setOnItemClickListener(this);
 
-		tvTitle = (TextView) findViewById(R.id.tv_title_lh);
-		gvPhotos = (GridView) findViewById(R.id.gv_photos_ar);
-		lvAblum = (ListView) findViewById(R.id.lv_ablum_ar);
-		btnOk = (Button) findViewById(R.id.btn_right_lh);
-		tvAlbum = (TextView) findViewById(R.id.tv_album_ar);
-		tvPreview = (TextView) findViewById(R.id.tv_preview_ar);
-		layoutAlbum = (RelativeLayout) findViewById(R.id.layout_album_ar);
-		tvNumber = (TextView) findViewById(R.id.tv_number);
+            findViewById(R.id.bv_back_lh).setOnClickListener(this); // 返回
 
-		btnOk.setOnClickListener(this);
-		tvAlbum.setOnClickListener(this);
-		tvPreview.setOnClickListener(this);
+            photoSelectorDomain.getReccent(reccentListener); // 更新最近照片
+            photoSelectorDomain.updateAlbum(albumListener); // 跟新相册信息
+        } else {
+            Toast.makeText(this, "SD卡不可用", Toast.LENGTH_LONG).show();
+            finish();
+        }
+    }
 
-		photoAdapter = new PhotoSelectorAdapter(getApplicationContext(),
-				new ArrayList<PhotoModel>(), CommonUtils.getWidthPixels(this),
-				this, this, this);
-		gvPhotos.setAdapter(photoAdapter);
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.btn_right_lh)
+            ok(); // 选完照片
+        else if (v.getId() == R.id.tv_album_ar)
+            album();
+        else if (v.getId() == R.id.tv_preview_ar)
+            priview();
+        else if (v.getId() == R.id.bv_back_lh) finish();
+    }
 
-		albumAdapter = new AlbumAdapter(getApplicationContext(),
-				new ArrayList<AlbumModel>());
-		lvAblum.setAdapter(albumAdapter);
-		lvAblum.setOnItemClickListener(this);
+    /** 拍照 */
+    private void catchPicture() {
+        if (Environment.MEDIA_MOUNTED.equals(Environment
+                .getExternalStorageState())) {
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            if (getIntent().getBooleanExtra("userFront", false)) {
+                intent.putExtra("android.intent.extras.CAMERA_FACING", 1); // 调用前置摄像头
+            }
+            Uri uri = getIntent().getExtras().getParcelable("photoUri");
+            if (uri != null) {
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+            } else {
+                uri = getUri(this);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+            }
+            intent.addFlags(0x3000000);
+            startActivity(intent);
+            finish();
+        } else {
+            Toast.makeText(this, "SD卡不可用", Toast.LENGTH_LONG).show();
+        }
+    }
 
-		findViewById(R.id.bv_back_lh).setOnClickListener(this); // 返回
+    public static Uri getUri(Context context) {
 
-		photoSelectorDomain.getReccent(reccentListener); // 更新最近照片
-		photoSelectorDomain.updateAlbum(albumListener); // 跟新相册信息
-	}
+        File mediaStorageDir = new File(
+                Environment
+                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM),
+                "Camera");
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
+                return null;
+            }
+        }
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
+                .format(new Date());
+        File mediaFile = new File(mediaStorageDir.getPath() + File.separator
+                + "IMG_" + timeStamp + ".jpg");
+        return Uri.fromFile(mediaFile);
 
-	private void initImageLoader() {
-		DisplayImageOptions imageOptions = new DisplayImageOptions.Builder()
-				.showImageOnLoading(R.drawable.ic_picture_loading)
-				.showImageOnFail(R.drawable.ic_picture_loadfailed)
-				.cacheInMemory(true).cacheOnDisk(true)
-				.resetViewBeforeLoading(true).considerExifParams(false)
-				.bitmapConfig(Bitmap.Config.RGB_565).build();
+        // if (Environment.MEDIA_MOUNTED.equals(Environment
+        // .getExternalStorageState())) {
+        // SimpleDateFormat timeStampFormat = new SimpleDateFormat(
+        // "yyyy_MM_dd_HH_mm_ss");
+        // String filename = timeStampFormat.format(new Date());
+        // ContentValues values = new ContentValues();
+        // values.put(MediaColumns.TITLE, filename);
+        // return context.getContentResolver().insert(
+        // MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        // } else {
+        // return null;
+        // }
+    }
 
-		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(
-				this)
-				.memoryCacheExtraOptions(400, 400)
-				// default = device screen dimensions
-				.diskCacheExtraOptions(400, 400, null)
-				.threadPoolSize(5)
-				// default Thread.NORM_PRIORITY - 1
-				.threadPriority(Thread.NORM_PRIORITY)
-				// default FIFO
-				.tasksProcessingOrder(QueueProcessingType.LIFO)
-				// default
-				.denyCacheImageMultipleSizesInMemory()
-				.memoryCache(new LruMemoryCache(2 * 1024 * 1024))
-				.memoryCacheSize(2 * 1024 * 1024)
-				.memoryCacheSizePercentage(13)
-				// default
-				.diskCache(
-						new UnlimitedDiscCache(StorageUtils.getCacheDirectory(
-								this, true)))
-				// default
-				.diskCacheSize(50 * 1024 * 1024).diskCacheFileCount(100)
-				.diskCacheFileNameGenerator(new HashCodeFileNameGenerator())
-				// default
-				.imageDownloader(new BaseImageDownloader(this))
-				// default
-				.imageDecoder(new BaseImageDecoder(false))
-				// default
-				.defaultDisplayImageOptions(DisplayImageOptions.createSimple())
-				// default
-				.defaultDisplayImageOptions(imageOptions).build();
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_CAMERA && resultCode == RESULT_OK) {
+            Uri uri = null;
+            if (data != null && data.getData() != null) {
+                uri = data.getData();
+            }
+            PhotoModel photoModel = new PhotoModel(CommonUtils.query(
+                    getApplicationContext(), uri));
+            // selected.clear();
+            // //--keep all
+            // selected photos
+            // tvNumber.setText("(0)");
+            // //--keep all
+            // selected photos
+            // ///////////////////////////////////////////////////////////////////////////////////////////
+            if (selected.size() > MAX_IMAGE) {
+                Toast.makeText(
+                        this,
+                        String.format(
+                                getString(R.string.photo_selector_max_img_limit_reached),
+                                MAX_IMAGE), Toast.LENGTH_SHORT).show();
+                photoModel.setChecked(false);
+                photoAdapter.notifyDataSetChanged();
+            } else {
+                if (!selected.contains(photoModel)) {
+                    selected.add(photoModel);
+                }
+                ok();
+            }
+        }
+    }
 
-		ImageLoader.getInstance().init(config);
-	}
+    /** 完成 */
+    private void ok() {
+        if (selected.size() > MAX_IMAGE) {
+            Toast.makeText(
+                    this,
+                    String.format(
+                            getString(R.string.photo_selector_max_img_limit_reached),
+                            MAX_IMAGE), Toast.LENGTH_SHORT).show();
+        } else {
+            Intent data = new Intent();
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("photos", selected);
+            data.putExtras(bundle);
+            setResult(RESULT_OK, data);
+            finish();
+        }
+    }
 
-	@Override
-	public void onClick(View v) {
-		if (v.getId() == R.id.btn_right_lh)
-			ok(); // 选完照片
-		else if (v.getId() == R.id.tv_album_ar)
-			album();
-		else if (v.getId() == R.id.tv_preview_ar)
-			priview();
-		else if (v.getId() == R.id.tv_camera_vc)
-			catchPicture();
-		else if (v.getId() == R.id.bv_back_lh)
-			finish();
-	}
+    /** 预览照片 */
+    private void priview() {
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("photos", selected);
+        CommonUtils.launchActivity(this, PhotoPreviewActivity.class, bundle);
+    }
 
-	/** 拍照 */
-	private void catchPicture() {
-		CommonUtils.launchActivityForResult(this, new Intent(
-				MediaStore.ACTION_IMAGE_CAPTURE), REQUEST_CAMERA);
-	}
+    private void album() {
+        if (layoutAlbum.getVisibility() == View.GONE) {
+            popAlbum();
+        } else {
+            hideAlbum();
+        }
+    }
 
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (requestCode == REQUEST_CAMERA && resultCode == RESULT_OK) {
-			PhotoModel photoModel = new PhotoModel(CommonUtils.query(
-					getApplicationContext(), data.getData()));
-			// selected.clear();
-			// //--keep all
-			// selected photos
-			// tvNumber.setText("(0)");
-			// //--keep all
-			// selected photos
-			// ///////////////////////////////////////////////////////////////////////////////////////////
-			if (selected.size() >= MAX_IMAGE) {
-				Toast.makeText(
-						this,
-						String.format(
-								getString(R.string.max_img_limit_reached),
-								MAX_IMAGE), Toast.LENGTH_SHORT).show();
-				photoModel.setChecked(false);
-				photoAdapter.notifyDataSetChanged();
-			} else {
-				if (!selected.contains(photoModel)) {
-					selected.add(photoModel);
-				}
-			}
-			ok();
-		}
-	}
+    /** 弹出相册列表 */
+    private void popAlbum() {
+        layoutAlbum.setVisibility(View.VISIBLE);
+        new AnimationUtil(getApplicationContext(), R.anim.translate_up_current)
+                .setLinearInterpolator().startAnimation(layoutAlbum);
+    }
 
-	/** 完成 */
-	private void ok() {
-		if (selected.isEmpty()) {
-			setResult(RESULT_CANCELED);
-		} else {
-			Intent data = new Intent();
-			Bundle bundle = new Bundle();
-			bundle.putSerializable("photos", selected);
-			data.putExtras(bundle);
-			setResult(RESULT_OK, data);
-		}
-		finish();
-	}
+    /** 隐藏相册列表 */
+    private void hideAlbum() {
+        new AnimationUtil(getApplicationContext(), R.anim.translate_down)
+                .setLinearInterpolator().startAnimation(layoutAlbum);
+        layoutAlbum.setVisibility(View.GONE);
+    }
 
-	/** 预览照片 */
-	private void priview() {
-		Bundle bundle = new Bundle();
-		bundle.putSerializable("photos", selected);
-		CommonUtils.launchActivity(this, PhotoPreviewActivity.class, bundle);
-	}
+    /** 清空选中的图片 */
+    private void reset() {
+        selected.clear();
+        tvNumber.setText("");
+        tvPreview.setEnabled(false);
+    }
 
-	private void album() {
-		if (layoutAlbum.getVisibility() == View.GONE) {
-			popAlbum();
-		} else {
-			hideAlbum();
-		}
-	}
+    @Override
+    /** 点击查看照片 */
+    public void onItemClick(int position) {
+        Bundle bundle = new Bundle();
+        if (tvAlbum.getText().toString().equals(RECCENT_PHOTO))
+            bundle.putInt("position", position - 1);
+        else
+            bundle.putInt("position", position);
+        bundle.putString("album", tvAlbum.getText().toString());
+        CommonUtils.launchActivity(this, PhotoPreviewActivity.class, bundle);
+    }
 
-	/** 弹出相册列表 */
-	private void popAlbum() {
-		layoutAlbum.setVisibility(View.VISIBLE);
-		new AnimationUtil(getApplicationContext(), R.anim.translate_up_current)
-				.setLinearInterpolator().startAnimation(layoutAlbum);
-	}
+    @Override
+    /** 照片选中状态改变之后 */
+    public boolean onCheckedChanged(PhotoModel photoModel,
+            CompoundButton buttonView, boolean isChecked) {
+        if (isChecked) {
+            if (!selected.contains(photoModel)) selected.add(photoModel);
+            if (selected.size() > MAX_IMAGE) {
+                selected.remove(photoModel);
+                buttonView.toggle();
+                checked = false;
+                Toast.makeText(
+                        this,
+                        String.format(
+                                getString(R.string.photo_selector_max_img_limit_reached),
+                                MAX_IMAGE), Toast.LENGTH_SHORT).show();
+            } else {
+                checked = true;
+            }
+            tvPreview.setEnabled(true);
+        } else {
+            checked = false;
+            if (selected.contains(photoModel)) selected.remove(photoModel);
+        }
+        tvNumber.setText("(" + selected.size() + "/" + MAX_IMAGE + ")");
+        tvPreview.setText(getString(R.string.photo_selector_preview) + "("
+                + selected.size() + "/" + MAX_IMAGE + ")");
 
-	/** 隐藏相册列表 */
-	private void hideAlbum() {
-		new AnimationUtil(getApplicationContext(), R.anim.translate_down)
-				.setLinearInterpolator().startAnimation(layoutAlbum);
-		layoutAlbum.setVisibility(View.GONE);
-	}
+        if (selected.isEmpty()) {
+            tvPreview.setEnabled(false);
+            tvNumber.setText("");
+            tvPreview.setText(getString(R.string.photo_selector_preview));
+        }
+        return checked;
+    }
 
-	/** 清空选中的图片 */
-	private void reset() {
-		selected.clear();
-		tvNumber.setText("(0)");
-		tvPreview.setEnabled(false);
-	}
+    @Override
+    public void onBackPressed() {
+        if (layoutAlbum.getVisibility() == View.VISIBLE) {
+            hideAlbum();
+        } else
+            super.onBackPressed();
+    }
 
-	@Override
-	/** 点击查看照片 */
-	public void onItemClick(int position) {
-		Bundle bundle = new Bundle();
-		if (tvAlbum.getText().toString().equals(RECCENT_PHOTO))
-			bundle.putInt("position", position - 1);
-		else
-			bundle.putInt("position", position);
-		bundle.putString("album", tvAlbum.getText().toString());
-		CommonUtils.launchActivity(this, PhotoPreviewActivity.class, bundle);
-	}
+    @Override
+    /** 相册列表点击事件 */
+    public void onItemClick(AdapterView<?> parent, View view, int position,
+            long id) {
+        AlbumModel current = (AlbumModel) parent.getItemAtPosition(position);
+        for (int i = 0; i < parent.getCount(); i++) {
+            AlbumModel album = (AlbumModel) parent.getItemAtPosition(i);
+            if (i == position)
+                album.setCheck(true);
+            else
+                album.setCheck(false);
+        }
+        albumAdapter.notifyDataSetChanged();
+        hideAlbum();
+        tvAlbum.setText(current.getName());
+        // tvTitle.setText(current.getName());
 
-	@Override
-	/** 照片选中状态改变之后 */
-	public void onCheckedChanged(PhotoModel photoModel,
-			CompoundButton buttonView, boolean isChecked) {
-		if (isChecked) {
-			if (!selected.contains(photoModel))
-				selected.add(photoModel);
-			tvPreview.setEnabled(true);
-		} else {
-			selected.remove(photoModel);
-		}
-		tvNumber.setText("(" + selected.size() + ")");
+        // 更新照片列表
+        if (current.getName().equals(RECCENT_PHOTO))
+            photoSelectorDomain.getReccent(reccentListener);
+        else
+            photoSelectorDomain.getAlbum(current.getName(), reccentListener); // 获取选中相册的照片
+    }
 
-		if (selected.isEmpty()) {
-			tvPreview.setEnabled(false);
-			tvPreview.setText(getString(R.string.preview));
-		}
-	}
+    /** 获取本地图库照片回调 */
+    public interface OnLocalReccentListener {
+        public void onPhotoLoaded(List<PhotoModel> photos);
+    }
 
-	@Override
-	public void onBackPressed() {
-		if (layoutAlbum.getVisibility() == View.VISIBLE) {
-			hideAlbum();
-		} else
-			super.onBackPressed();
-	}
+    /** 获取本地相册信息回调 */
+    public interface OnLocalAlbumListener {
+        public void onAlbumLoaded(List<AlbumModel> albums);
+    }
 
-	@Override
-	/** 相册列表点击事件 */
-	public void onItemClick(AdapterView<?> parent, View view, int position,
-			long id) {
-		AlbumModel current = (AlbumModel) parent.getItemAtPosition(position);
-		for (int i = 0; i < parent.getCount(); i++) {
-			AlbumModel album = (AlbumModel) parent.getItemAtPosition(i);
-			if (i == position)
-				album.setCheck(true);
-			else
-				album.setCheck(false);
-		}
-		albumAdapter.notifyDataSetChanged();
-		hideAlbum();
-		tvAlbum.setText(current.getName());
-		// tvTitle.setText(current.getName());
+    private OnLocalAlbumListener albumListener = new OnLocalAlbumListener() {
+        @Override
+        public void onAlbumLoaded(List<AlbumModel> albums) {
+            albumAdapter.update(albums);
+        }
+    };
 
-		// 更新照片列表
-		if (current.getName().equals(RECCENT_PHOTO))
-			photoSelectorDomain.getReccent(reccentListener);
-		else
-			photoSelectorDomain.getAlbum(current.getName(), reccentListener); // 获取选中相册的照片
-	}
+    private OnLocalReccentListener reccentListener = new OnLocalReccentListener() {
+        @Override
+        public void onPhotoLoaded(List<PhotoModel> photos) {
+            for (PhotoModel model : photos) {
+                if (selected.contains(model)) {
+                    model.setChecked(true);
+                }
+            }
+            photoAdapter.update(photos);
+            gvPhotos.smoothScrollToPosition(0); // 滚动到顶端
+            // reset(); //--keep selected photos
 
-	/** 获取本地图库照片回调 */
-	public interface OnLocalReccentListener {
-		public void onPhotoLoaded(List<PhotoModel> photos);
-	}
-
-	/** 获取本地相册信息回调 */
-	public interface OnLocalAlbumListener {
-		public void onAlbumLoaded(List<AlbumModel> albums);
-	}
-
-	private OnLocalAlbumListener albumListener = new OnLocalAlbumListener() {
-		@Override
-		public void onAlbumLoaded(List<AlbumModel> albums) {
-			albumAdapter.update(albums);
-		}
-	};
-
-	private OnLocalReccentListener reccentListener = new OnLocalReccentListener() {
-		@Override
-		public void onPhotoLoaded(List<PhotoModel> photos) {
-			for (PhotoModel model : photos) {
-				if (selected.contains(model)) {
-					model.setChecked(true);
-				}
-			}
-			photoAdapter.update(photos);
-			gvPhotos.smoothScrollToPosition(0); // 滚动到顶端
-			// reset(); //--keep selected photos
-
-		}
-	};
+        }
+    };
 }

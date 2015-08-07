@@ -10,120 +10,151 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 
-import com.nostra13.universalimageloader.core.ImageLoader;
+import com.bumptech.glide.Glide;
 import com.photoselector.R;
 import com.photoselector.model.PhotoModel;
 
 /**
  * @author Aizaz AZ
- *
+ * 
  */
 
 public class PhotoItem extends LinearLayout implements OnCheckedChangeListener,
-		OnLongClickListener {
+        OnLongClickListener {
 
-	private ImageView ivPhoto;
-	private CheckBox cbPhoto;
-	private onPhotoItemCheckedListener listener;
-	private PhotoModel photo;
-	private boolean isCheckAll;
-	private onItemClickListener l;
-	private int position;	
+    private ImageView ivPhoto;
+    private CheckBox cbPhoto;
+    private onPhotoItemCheckedListener listener;
+    private PhotoModel photo;
+    private boolean isCheckAll;
+    private onItemClickListener l;
+    private int position;
+    private Context mContext;
 
-	private PhotoItem(Context context) {
-		super(context);
-	}
+    private PhotoItem(Context context) {
+        super(context);
+        mContext = context;
+    }
 
-	public PhotoItem(Context context, onPhotoItemCheckedListener listener) {
-		this(context);
-		LayoutInflater.from(context).inflate(R.layout.layout_photoitem, this,
-				true);
-		this.listener = listener;
+    public PhotoItem(Context context, onPhotoItemCheckedListener listener) {
+        this(context);
+        mContext = context;
+        LayoutInflater.from(context).inflate(R.layout.layout_photoitem, this,
+                true);
+        this.listener = listener;
 
-		setOnLongClickListener(this);
+        setOnLongClickListener(this);
 
-		ivPhoto = (ImageView) findViewById(R.id.iv_photo_lpsi);
-		cbPhoto = (CheckBox) findViewById(R.id.cb_photo_lpsi);
+        ivPhoto = (ImageView) findViewById(R.id.iv_photo_lpsi);
+        cbPhoto = (CheckBox) findViewById(R.id.cb_photo_lpsi);
 
-		cbPhoto.setOnCheckedChangeListener(this); // CheckBoxÑ¡ÖĞ×´Ì¬¸Ä±ä¼àÌıÆ÷
-	}
+        cbPhoto.setOnCheckedChangeListener(this); // CheckBoxé€‰ä¸­çŠ¶æ€æ”¹å˜ç›‘å¬å™¨
+    }
 
-	@Override
-	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-		if (!isCheckAll) {
-			listener.onCheckedChanged(photo, buttonView, isChecked); // µ÷ÓÃÖ÷½çÃæ»Øµ÷º¯Êı
-		}
-		// ÈÃÍ¼Æ¬±ä°µ»òÕß±äÁÁ
-		if (isChecked) {
-			setDrawingable();
-			ivPhoto.setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
-		} else {
-			ivPhoto.clearColorFilter();
-		}
-		photo.setChecked(isChecked);
-	}
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        if (!isCheckAll) {
+            isChecked = listener.onCheckedChanged(photo, buttonView, isChecked); // è°ƒç”¨ä¸»ç•Œé¢å›è°ƒå‡½æ•°
+        }
+        // è®©å›¾ç‰‡å˜æš—æˆ–è€…å˜äº®
+        setDarkBackgroud(isChecked);
+        photo.setChecked(isChecked);
+    }
 
-	/** ÉèÖÃÂ·¾¶ÏÂµÄÍ¼Æ¬¶ÔÓ¦µÄËõÂÔÍ¼ */
-	public void setImageDrawable(final PhotoModel photo) {
-		this.photo = photo;
-		// You may need this setting form some custom ROM(s)
-		/*
-		 * new Handler().postDelayed(new Runnable() {
-		 * 
-		 * @Override public void run() { ImageLoader.getInstance().displayImage(
-		 * "file://" + photo.getOriginalPath(), ivPhoto); } }, new
-		 * Random().nextInt(10));
-		 */
+    /** è®¾ç½®è·¯å¾„ä¸‹çš„å›¾ç‰‡å¯¹åº”çš„ç¼©ç•¥å›¾ */
+    public void setImageDrawable(final PhotoModel photo) {
+        this.photo = photo;
+        // You may need this setting form some custom ROM(s)
+        /*
+         * new Handler().postDelayed(new Runnable() {
+         * 
+         * @Override public void run() { ImageLoader.getInstance().displayImage(
+         * "file://" + photo.getOriginalPath(), ivPhoto); } }, new
+         * Random().nextInt(10));
+         */
+        ivPhoto.setScaleType(ScaleType.CENTER_CROP);
+        ivPhoto.setBackgroundColor(mContext.getResources().getColor(
+                R.color.translucent));
+        String url = photo.getOriginalPath();
+        // if (!url.startsWith("http")) {
+        // url = "file://" + url;
+        // }
+        // ImageLoader.getInstance().displayImage(url, ivPhoto);
+        Glide.with(mContext).load(url).centerCrop().dontAnimate()
+                .placeholder(R.drawable.ic_picture_loading)
+                .error(R.drawable.ic_picture_loadfailed).into(ivPhoto);
+    }
 
-		ImageLoader.getInstance().displayImage(
-				"file://" + photo.getOriginalPath(), ivPhoto);
-	}
+    public void setDarkBackgroud(boolean isChecked) {
+        if (isChecked) {
+            setDrawingable();
+            ivPhoto.setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
+        } else {
+            ivPhoto.clearColorFilter();
+        }
+    }
 
-	private void setDrawingable() {
-		ivPhoto.setDrawingCacheEnabled(true);
-		ivPhoto.buildDrawingCache();
-	}
+    public void setCameraItem() {
+        ivPhoto.setScaleType(ScaleType.CENTER_INSIDE);
+        ivPhoto.setImageDrawable(mContext.getResources().getDrawable(
+                R.drawable.btn_camera_selector));
+        ivPhoto.setBackgroundColor(mContext.getResources().getColor(
+                R.color.grey));
+    }
 
-	@Override
-	public void setSelected(boolean selected) {
-		if (photo == null) {
-			return;
-		}
-		isCheckAll = true;
-		cbPhoto.setChecked(selected);
-		isCheckAll = false;
-	}
+    public void setDrawingable() {
+        ivPhoto.setDrawingCacheEnabled(true);
+        ivPhoto.buildDrawingCache();
+    }
 
-	public void setOnClickListener(onItemClickListener l, int position) {
-		this.l = l;
-		this.position = position;
-	}
+    @Override
+    public void setSelected(boolean selected) {
+        if (photo == null) {
+            return;
+        }
+        isCheckAll = true;
+        cbPhoto.setChecked(selected);
+        isCheckAll = false;
+    }
 
-	// @Override
-	// public void
-	// onClick(View v) {
-	// if (l != null)
-	// l.onItemClick(position);
-	// }
+    public void setOnClickListener(onItemClickListener l, int position) {
+        this.l = l;
+        this.position = position;
+    }
 
-	/** Í¼Æ¬ItemÑ¡ÖĞÊÂ¼ş¼àÌıÆ÷ */
-	public static interface onPhotoItemCheckedListener {
-		public void onCheckedChanged(PhotoModel photoModel,
-				CompoundButton buttonView, boolean isChecked);
-	}
+    // @Override
+    // public void
+    // onClick(View v) {
+    // if (l != null)
+    // l.onItemClick(position);
+    // }
 
-	/** Í¼Æ¬µã»÷ÊÂ¼ş */
-	public interface onItemClickListener {
-		public void onItemClick(int position);
-	}
+    /** å›¾ç‰‡Itemé€‰ä¸­äº‹ä»¶ç›‘å¬å™¨ */
+    public static interface onPhotoItemCheckedListener {
+        public boolean onCheckedChanged(PhotoModel photoModel,
+                CompoundButton compoundButton, boolean isChecked);
+    }
 
-	@Override
-	public boolean onLongClick(View v) {
-		if (l != null)
-			l.onItemClick(position);
-		return true;
-	}
+    /** å›¾ç‰‡ç‚¹å‡»äº‹ä»¶ */
+    public interface onItemClickListener {
+        public void onItemClick(int position);
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        if (l != null) l.onItemClick(position);
+        return true;
+    }
+
+    public void setCheckBoxVisibility(boolean flag) {
+        if (flag) {
+            cbPhoto.setVisibility(View.VISIBLE);
+        } else {
+            cbPhoto.setVisibility(View.GONE);
+        }
+    }
 
 }

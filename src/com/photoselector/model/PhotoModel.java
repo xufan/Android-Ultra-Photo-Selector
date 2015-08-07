@@ -5,92 +5,104 @@ import java.io.Serializable;
 /**
  * 
  * @author Aizaz
- *
+ * 
  */
-
 
 public class PhotoModel implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private String originalPath;
-	private boolean isChecked;
+    private String originalPath;
+    private boolean isChecked;
+    private String key;
 
-	public PhotoModel(String originalPath, boolean isChecked) {
-		super();
-		this.originalPath = originalPath;
-		this.isChecked = isChecked;
-	}
+    public PhotoModel(String originalPath, boolean isChecked) {
+        super();
+        this.originalPath = originalPath;
+        this.isChecked = isChecked;
+    }
 
-	public PhotoModel(String originalPath) {
-		this.originalPath = originalPath;
-	}
+    public PhotoModel(String originalPath) {
+        this.originalPath = originalPath;
+    }
 
-	public PhotoModel() {
-	}
+    public String getKey() {
+        return key;
+    }
 
-	public String getOriginalPath() {
-		return originalPath;
-	}
+    public void setKey(String key) {
+        this.key = key;
+    }
 
-	public void setOriginalPath(String originalPath) {
-		this.originalPath = originalPath;
-	}
+    public PhotoModel() {
+    }
 
-	public boolean isChecked() {
-		return isChecked;
-	}
+    public String getOriginalPath() {
+        return originalPath;
+    }
 
-//	@Override
-//	public boolean equals(Object o) {
-//		if (o.getClass() == getClass()) {
-//			PhotoModel model = (PhotoModel) o;
-//			if (this.getOriginalPath().equals(model.getOriginalPath())) {
-//				return true;
-//			}
-//		}
-//		return false;
-//	}
+    public void setOriginalPath(String originalPath) {
+        this.originalPath = originalPath;
+    }
 
-	public void setChecked(boolean isChecked) {
-		System.out.println("checked " + isChecked + " for " + originalPath);
-		this.isChecked = isChecked;
-	}
+    public boolean isChecked() {
+        return isChecked;
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((originalPath == null) ? 0 : originalPath.hashCode());
-		return result;
-	}
+    // @Override
+    // public boolean equals(Object o) {
+    // if (o.getClass() == getClass()) {
+    // PhotoModel model = (PhotoModel) o;
+    // if (this.getOriginalPath().equals(model.getOriginalPath())) {
+    // return true;
+    // }
+    // }
+    // return false;
+    // }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (!(obj instanceof PhotoModel)) {
-			return false;
-		}
-		PhotoModel other = (PhotoModel) obj;
-		if (originalPath == null) {
-			if (other.originalPath != null) {
-				return false;
-			}
-		} else if (!originalPath.equals(other.originalPath)) {
-			return false;
-		}
-		return true;
-	}
+    public void setChecked(boolean isChecked) {
+        this.isChecked = isChecked;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((originalPath == null) ? 0 : originalPath.hashCode());
+        return result;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof PhotoModel)) {
+            return false;
+        }
+        PhotoModel other = (PhotoModel) obj;
+        if (originalPath == null) {
+            if (other.originalPath != null) {
+                return false;
+            }
+        } else if (!originalPath.equals(other.originalPath)) {
+            return false;
+        }
+        return true;
+    }
 
 }

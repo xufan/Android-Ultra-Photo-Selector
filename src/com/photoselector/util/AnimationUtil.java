@@ -11,121 +11,121 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.TranslateAnimation;
 
 /**
- * ¶¯»­¹¤¾ßÀà
+ * åŠ¨ç”»å·¥å…·ç±»
  * 
  * @author chen
  * 
  */
 public class AnimationUtil implements AnimationListener {
 
-	private Animation animation;
-	private OnAnimationEndListener animationEndListener; // ¶¯»­Íê³É¼àÌıÆ÷
-	private OnAnimationStartListener animationStartListener; // ¶¯»­¿ªÊ¼¼àÌıÆ÷
-	private OnAnimationRepeatListener animationRepeatListener; // ¶¯»­ÖØ¸´Ê±µÄ¼àÌıÆ÷
+    private Animation animation;
+    private OnAnimationEndListener animationEndListener; // åŠ¨ç”»å®Œæˆç›‘å¬å™¨
+    private OnAnimationStartListener animationStartListener; // åŠ¨ç”»å¼€å§‹ç›‘å¬å™¨
+    private OnAnimationRepeatListener animationRepeatListener; // åŠ¨ç”»é‡å¤æ—¶çš„ç›‘å¬å™¨
 
-	public AnimationUtil(Context context, int resId) {
-		this.animation = AnimationUtils.loadAnimation(context, resId);
-		this.animation.setAnimationListener(this);
-	}
+    public AnimationUtil(Context context, int resId) {
+        this.animation = AnimationUtils.loadAnimation(context, resId);
+        this.animation.setAnimationListener(this);
+    }
 
-	/** ×Ô¶¨ÒåÒ»¸öTranslateÀàĞÍµÄAnimation */
-	public AnimationUtil(float fromXDelta, float toXDelta, float fromYDelta,
-			float toYDelta) {
-		animation = new TranslateAnimation(fromXDelta, toXDelta, fromYDelta,
-				toYDelta);
-	}
+    /** è‡ªå®šä¹‰ä¸€ä¸ªTranslateç±»å‹çš„Animation */
+    public AnimationUtil(float fromXDelta, float toXDelta, float fromYDelta,
+            float toYDelta) {
+        animation = new TranslateAnimation(fromXDelta, toXDelta, fromYDelta,
+                toYDelta);
+    }
 
-	/** Á½¸ö¶¯»­Ö®¼äµÄÊ±¼ä¼ä¸ô */
-	public AnimationUtil setStartOffSet(long startOffset) {
-		animation.setStartOffset(startOffset);
-		return this;
-	}
+    /** ä¸¤ä¸ªåŠ¨ç”»ä¹‹é—´çš„æ—¶é—´é—´éš” */
+    public AnimationUtil setStartOffSet(long startOffset) {
+        animation.setStartOffset(startOffset);
+        return this;
+    }
 
-	/** ÉèÖÃÒ»¸ö¶¯»­µÄ²åÈëÆ÷ */
-	public AnimationUtil setInterpolator(Interpolator i) {
-		animation.setInterpolator(i);
-		return this;
-	}
-	
-	public AnimationUtil setLinearInterpolator() {
-		animation.setInterpolator(new LinearInterpolator());
-		return this;
-	}
+    /** è®¾ç½®ä¸€ä¸ªåŠ¨ç”»çš„æ’å…¥å™¨ */
+    public AnimationUtil setInterpolator(Interpolator i) {
+        animation.setInterpolator(i);
+        return this;
+    }
 
-	/** ¿ªÊ¼¶¯»­ */
-	public void startAnimation(View view) {
-		view.startAnimation(animation);
-	}
+    public AnimationUtil setLinearInterpolator() {
+        animation.setInterpolator(new LinearInterpolator());
+        return this;
+    }
 
-	/** ¿ªÆôÒ»¸öÖ¡¶¯»­ */
-	public static void startAnimation(int resId, View view) {
-		view.setBackgroundResource(resId);
-		((AnimationDrawable) view.getBackground()).start();
-	}
+    /** å¼€å§‹åŠ¨ç”» */
+    public void startAnimation(View view) {
+        view.startAnimation(animation);
+    }
 
-	public AnimationUtil setDuration(long durationMillis) {
-		animation.setDuration(durationMillis);
-		return this;
-	}
+    /** å¼€å¯ä¸€ä¸ªå¸§åŠ¨ç”» */
+    public static void startAnimation(int resId, View view) {
+        view.setBackgroundResource(resId);
+        ((AnimationDrawable) view.getBackground()).start();
+    }
 
-	public AnimationUtil setFillAfter(boolean fillAfter) {
-		animation.setFillAfter(fillAfter);
-		return this;
-	}
+    public AnimationUtil setDuration(long durationMillis) {
+        animation.setDuration(durationMillis);
+        return this;
+    }
 
-	public interface OnAnimationEndListener {
-		void onAnimationEnd(Animation animation);
-	}
+    public AnimationUtil setFillAfter(boolean fillAfter) {
+        animation.setFillAfter(fillAfter);
+        return this;
+    }
 
-	public interface OnAnimationStartListener {
-		void onAnimationStart(Animation animation);
-	}
+    public interface OnAnimationEndListener {
+        void onAnimationEnd(Animation animation);
+    }
 
-	public interface OnAnimationRepeatListener {
-		void onAnimationRepeat(Animation animation);
-	}
+    public interface OnAnimationStartListener {
+        void onAnimationStart(Animation animation);
+    }
 
-	public AnimationUtil setOnAnimationEndLinstener(
-			OnAnimationEndListener listener) {
-		this.animationEndListener = listener;
-		return this;
-	}
+    public interface OnAnimationRepeatListener {
+        void onAnimationRepeat(Animation animation);
+    }
 
-	public AnimationUtil setOnAnimationStartLinstener(
-			OnAnimationStartListener listener) {
-		this.animationStartListener = listener;
-		return this;
-	}
+    public AnimationUtil setOnAnimationEndLinstener(
+            OnAnimationEndListener listener) {
+        this.animationEndListener = listener;
+        return this;
+    }
 
-	public AnimationUtil setOnAnimationRepeatLinstener(
-			OnAnimationRepeatListener listener) {
-		this.animationRepeatListener = listener;
-		return this;
-	}
+    public AnimationUtil setOnAnimationStartLinstener(
+            OnAnimationStartListener listener) {
+        this.animationStartListener = listener;
+        return this;
+    }
 
-	public void setAnimationListener(AnimationListener animationListener) {
-		animation.setAnimationListener(animationListener);
-	}
+    public AnimationUtil setOnAnimationRepeatLinstener(
+            OnAnimationRepeatListener listener) {
+        this.animationRepeatListener = listener;
+        return this;
+    }
 
-	@Override
-	public void onAnimationStart(Animation animation) {
-		if (this.animationStartListener != null) {
-			this.animationStartListener.onAnimationStart(animation);
-		}
-	}
+    public void setAnimationListener(AnimationListener animationListener) {
+        animation.setAnimationListener(animationListener);
+    }
 
-	@Override
-	public void onAnimationEnd(Animation animation) {
-		if (this.animationEndListener != null) {
-			this.animationEndListener.onAnimationEnd(animation);
-		}
-	}
+    @Override
+    public void onAnimationStart(Animation animation) {
+        if (this.animationStartListener != null) {
+            this.animationStartListener.onAnimationStart(animation);
+        }
+    }
 
-	@Override
-	public void onAnimationRepeat(Animation animation) {
-		if (this.animationRepeatListener != null) {
-			this.animationRepeatListener.onAnimationRepeat(animation);
-		}
-	}
+    @Override
+    public void onAnimationEnd(Animation animation) {
+        if (this.animationEndListener != null) {
+            this.animationEndListener.onAnimationEnd(animation);
+        }
+    }
+
+    @Override
+    public void onAnimationRepeat(Animation animation) {
+        if (this.animationRepeatListener != null) {
+            this.animationRepeatListener.onAnimationRepeat(animation);
+        }
+    }
 
 }

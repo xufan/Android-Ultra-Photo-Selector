@@ -1,116 +1,144 @@
 package com.photoselector.util;
 
-import com.photoselector.ui.PhotoSelectorActivity;
-
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore.Images.ImageColumns;
+import android.provider.MediaStore.MediaColumns;
 import android.util.DisplayMetrics;
 
+import com.photoselector.ui.PhotoSelectorActivity;
+
 /**
- * Õ®”√π§æﬂ¿‡
+ * ÈÄöÁî®Â∑•ÂÖ∑Á±ª
  * 
  * @author chenww
  * 
  */
 public class CommonUtils {
 
-	/**
-	 * ø™∆Ùactivity
-	 */
-	public static void launchActivity(Context context, Class<?> activity) {
-		Intent intent = new Intent(context, activity);
-		intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-		context.startActivity(intent);
-	}
+    /**
+     * ÂºÄÂêØactivity
+     */
+    public static void launchActivity(Context context, Class<?> activity) {
+        Intent intent = new Intent(context, activity);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        context.startActivity(intent);
+    }
 
-	/**
-	 * ø™∆Ùactivity(¥¯≤Œ ˝)
-	 */
-	public static void launchActivity(Context context, Class<?> activity, Bundle bundle) {
-		Intent intent = new Intent(context, activity);
-		intent.putExtras(bundle);
-		intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-		context.startActivity(intent);
-	}
+    /**
+     * ÂºÄÂêØactivity(Â∏¶ÂèÇÊï∞)
+     */
+    public static void launchActivity(Context context, Class<?> activity,
+            Bundle bundle) {
+        Intent intent = new Intent(context, activity);
+        intent.putExtras(bundle);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        context.startActivity(intent);
+    }
 
-	/**
-	 * ø™∆Ùactivity(¥¯≤Œ ˝)
-	 */
-	public static void launchActivity(Context context, Class<?> activity, String key, int value) {
-		Bundle bundle = new Bundle();
-		bundle.putInt(key, value);
-		launchActivity(context, activity, bundle);
-	}
+    /**
+     * ÂºÄÂêØactivity(Â∏¶ÂèÇÊï∞)
+     */
+    public static void launchActivity(Context context, Class<?> activity,
+            String key, int value) {
+        Bundle bundle = new Bundle();
+        bundle.putInt(key, value);
+        launchActivity(context, activity, bundle);
+    }
 
-	public static void launchActivity(Context context, Class<?> activity, String key, String value) {
-		Bundle bundle = new Bundle();
-		bundle.putString(key, value);
-		launchActivity(context, activity, bundle);
-	}
+    public static void launchActivity(Context context, Class<?> activity,
+            String key, String value) {
+        Bundle bundle = new Bundle();
+        bundle.putString(key, value);
+        launchActivity(context, activity, bundle);
+    }
 
-	public static void launchActivityForResult(Activity context, Class<?> activity, int requestCode) {
-		Intent intent = new Intent(context, activity);
-		intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-		context.startActivityForResult(intent, requestCode);
-	}
-	
-	public static void launchActivityForResult(Activity context, Class<?> activity, int requestCode, int maxImage) {
-		Intent intent = new Intent(context, activity);
-		intent.putExtra(PhotoSelectorActivity.KEY_MAX, maxImage);
-		intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-		context.startActivityForResult(intent, requestCode);
-	}
+    public static void launchActivityForResult(Activity context,
+            Class<?> activity, int requestCode) {
+        Intent intent = new Intent(context, activity);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        context.startActivityForResult(intent, requestCode);
+    }
 
-	public static void launchActivityForResult(Activity activity, Intent intent, int requestCode) {
-		activity.startActivityForResult(intent, requestCode);
-	}
+    public static void launchActivityForResult(Activity context,
+            Class<?> activity, int requestCode, int maxImage) {
+        Intent intent = new Intent(context, activity);
+        intent.putExtra(PhotoSelectorActivity.KEY_MAX, maxImage);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        context.startActivityForResult(intent, requestCode);
+    }
 
-	/** ∆Ù∂Ø“ª∏ˆ∑˛ŒÒ */
-	public static void launchService(Context context, Class<?> service) {
-		Intent intent = new Intent(context, service);
-		context.startService(intent);
-	}
+    public static void launchActivityForResult(Activity activity,
+            Intent intent, int requestCode) {
+        activity.startActivityForResult(intent, requestCode);
+    }
 
-	public static void stopService(Context context, Class<?> service) {
-		Intent intent = new Intent(context, service);
-		context.stopService(intent);
-	}
+    /** ÂêØÂä®‰∏Ä‰∏™ÊúçÂä° */
+    public static void launchService(Context context, Class<?> service) {
+        Intent intent = new Intent(context, service);
+        context.startService(intent);
+    }
 
-	/**
-	 * ≈–∂œ◊÷∑˚¥Æ «∑ÒŒ™ø’
-	 * @param text
-	 * @return true null false !null
-	 */
-	public static boolean isNull(CharSequence text) {
-		if (text == null || "".equals(text.toString().trim()) || "null".equals(text))
-			return true;
-		return false;
-	}
+    public static void stopService(Context context, Class<?> service) {
+        Intent intent = new Intent(context, service);
+        context.stopService(intent);
+    }
 
-	/** ªÒ»°∆¡ƒªøÌ∂» */
-	public static int getWidthPixels(Activity activity) {
-		DisplayMetrics dm = new DisplayMetrics();
-		activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
-		return dm.widthPixels;
-	}
+    /**
+     * Âà§Êñ≠Â≠óÁ¨¶‰∏≤ÊòØÂê¶‰∏∫Á©∫
+     * 
+     * @param text
+     * @return true null false !null
+     */
+    public static boolean isNull(CharSequence text) {
+        if (text == null || "".equals(text.toString().trim())
+                || "null".equals(text)) return true;
+        return false;
+    }
 
-	/** ªÒ»°∆¡ƒª∏ﬂ∂» */
-	public static int getHeightPixels(Activity activity) {
-		DisplayMetrics dm = new DisplayMetrics();
-		activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
-		return dm.heightPixels;
-	}
+    /** Ëé∑ÂèñÂ±èÂπïÂÆΩÂ∫¶ */
+    public static int getWidthPixels(Activity activity) {
+        DisplayMetrics dm = new DisplayMetrics();
+        activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
+        return dm.widthPixels;
+    }
 
-	/** Õ®π˝UriªÒ»°Õº∆¨¬∑æ∂ */
-	public static String query(Context context, Uri uri) {
-		Cursor cursor = context.getContentResolver().query(uri, new String[] { ImageColumns.DATA }, null, null, null);
-		cursor.moveToNext();
-		return cursor.getString(cursor.getColumnIndex(ImageColumns.DATA));
-	}
+    /** Ëé∑ÂèñÂ±èÂπïÈ´òÂ∫¶ */
+    public static int getHeightPixels(Activity activity) {
+        DisplayMetrics dm = new DisplayMetrics();
+        activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
+        return dm.heightPixels;
+    }
+
+    /** ÈÄöËøáUriËé∑ÂèñÂõæÁâáË∑ØÂæÑ */
+    public static String query(Context context, Uri uri) {
+        if (null == uri) {
+            return null;
+        }
+        final String scheme = uri.getScheme();
+        String data = null;
+        if (scheme == null) {
+            data = uri.getPath();
+        } else if (ContentResolver.SCHEME_FILE.equals(scheme)) {
+            data = uri.getPath();
+        } else if (ContentResolver.SCHEME_CONTENT.equals(scheme)) {
+            Cursor cursor = context.getContentResolver().query(uri,
+                    new String[] { MediaColumns.DATA }, null, null, null);
+            if (null != cursor) {
+                if (cursor.moveToFirst()) {
+                    int index = cursor.getColumnIndex(MediaColumns.DATA);
+                    if (index > -1) {
+                        data = cursor.getString(index);
+                    }
+                }
+                cursor.close();
+            }
+        }
+        return data;
+    }
 
 }
